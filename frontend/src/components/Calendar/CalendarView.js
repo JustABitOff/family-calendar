@@ -127,6 +127,7 @@ const CalendarView = ({ events, calendars, loading }) => {
         formats={formats}
         popup
         tooltipAccessor={(event) => `${event.title}${event.resource.location ? `\nLocation: ${event.resource.location}` : ''}`}
+        views={['month', 'week', 'day']} // Exclude 'agenda' view
       />
       
       <EventDetailsModal 
