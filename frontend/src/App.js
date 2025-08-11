@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, ConfigProvider, theme } from 'antd';
+import { Layout, ConfigProvider, theme, Button, Space } from 'antd';
+import { CalendarOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import moment from 'moment';
@@ -20,7 +21,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [agendaDateRange, setAgendaDateRange] = useState(null);
+  const [currentView, setCurrentView] = useState('calendar'); // 'calendar' or 'agenda'
 
   // Load calendars on mount
   useEffect(() => {
@@ -86,9 +87,6 @@ function App() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  const handleAgendaDateRangeChange = (startDate, endDate) => {
-    setAgendaDateRange({ startDate, endDate });
-  };
 
   return (
     <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
@@ -116,12 +114,44 @@ function App() {
                 borderRadius: 4,
               }}
             >
-              <CalendarLegend calendars={calendars} />
-              <CalendarView 
-                events={events} 
-                calendars={calendars}
-                loading={loading}
-              />
+              {/* View Navigation Controls */}
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <Button
+                    type={currentView === 'calendar' ? 'primary' : 'default'}
+                    icon={<CalendarOutlined />}
+                    onClick={() => setCurrentView('calendar')}
+                  >
+                    Calendar
+                  </Button>
+                  <Button
+                    type={currentView === 'agenda' ? 'primary' : 'default'}
+                    icon={<UnorderedListOutlined />}
+                    onClick={() => setCurrentView('agenda')}
+                  >
+                    Agenda
+                  </Button>
+                </Space>
+              </div>
+
+              {/* Calendar Legend - only show for calendar view */}
+              {currentView === 'calendar' && <CalendarLegend calendars={calendars} />}
+              
+              {/* Conditional View Rendering */}
+              {currentView === 'calendar' ? (
+                <CalendarView 
+                  events={events} 
+                  calendars={calendars}
+                  loading={loading}
+                />
+              ) : (
+                <AgendaView 
+                  events={events} 
+                  calendars={calendars}
+                  loading={loading}
+                  onDateRangeChange={() => {}} // Independent operation - no need to sync with calendar
+                />
+              )}
             </Content>
           </Layout>
         </Layout>
