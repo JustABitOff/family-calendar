@@ -48,3 +48,74 @@ code {
 .add-calendar-form {
   margin-bottom: 24px;
 }
+
+/* Agenda view improvements */
+.rbc-agenda-view {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr td {
+  padding: 12px 16px;
+  vertical-align: top;
+  border-right: 1px solid #f0f0f0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr td:last-child {
+  border-right: none;
+}
+
+.rbc-agenda-view .rbc-agenda-table thead tr th {
+  background-color: #fafafa;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #e8e8e8;
+  border-right: 1px solid #e8e8e8;
+  text-align: left;
+}
+
+.rbc-agenda-view .rbc-agenda-table thead tr th:last-child {
+  border-right: none;
+}
+
+/* Add hover effect for better UX */
+.rbc-agenda-view .rbc-agenda-table tbody tr:hover {
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+/* Improve event title styling in agenda */
+.rbc-agenda-view .rbc-agenda-table tbody tr td .rbc-event-content {
+  font-weight: 500;
+}
+
+/* Add some spacing between date groups */
+.rbc-agenda-view .rbc-agenda-date-cell {
+  font-weight: 600;
+  color: #595959;
+  min-width: 120px;
+}
+
+.rbc-agenda-view .rbc-agenda-time-cell {
+  color: #8c8c8c;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.rbc-agenda-view .rbc-agenda-event-cell {
+  color: #262626;
+}

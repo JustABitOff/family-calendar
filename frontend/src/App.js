@@ -8,6 +8,7 @@ import 'moment-timezone';
 import AppHeader from './components/Layout/AppHeader';
 import AppSidebar from './components/Layout/AppSidebar';
 import CalendarView from './components/Calendar/CalendarView';
+import AgendaView from './components/Calendar/AgendaView';
 import CalendarLegend from './components/Calendar/CalendarLegend';
 import { fetchCalendars, fetchEvents, fetchEventsByDateRange } from './services/apiService';
 
@@ -19,6 +20,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [agendaDateRange, setAgendaDateRange] = useState(null);
 
   // Load calendars on mount
   useEffect(() => {
@@ -82,6 +84,10 @@ function App() {
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const handleAgendaDateRangeChange = (startDate, endDate) => {
+    setAgendaDateRange({ startDate, endDate });
   };
 
   return (

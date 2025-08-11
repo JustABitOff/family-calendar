@@ -4,6 +4,7 @@ import moment from 'moment';
 import 'moment-timezone';
 import { Spin, Empty } from 'antd';
 import EventDetailsModal from './EventDetailsModal';
+import AgendaView from './AgendaView';
 
 // Setup the localizer for react-big-calendar
 // This will use the browser's local timezone automatically
@@ -105,6 +106,46 @@ const CalendarView = ({ events, calendars, loading }) => {
               ? "Add a calendar to see events" 
               : "No events found in the selected time range"
           } 
+        />
+      </div>
+    );
+  }
+
+  // If agenda view is selected, show our custom agenda table
+  if (view === 'agenda') {
+    return (
+      <div>
+        <div style={{ marginBottom: 16 }}>
+          <Calendar
+            localizer={localizer}
+            events={formattedEvents}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 100 }}
+            eventPropGetter={eventStyleGetter}
+            view={view}
+            onView={handleViewChange}
+            date={date}
+            onNavigate={handleNavigate}
+            onSelectEvent={handleSelectEvent}
+            formats={formats}
+            popup
+            tooltipAccessor={(event) => `${event.title}${event.resource.location ? `\nLocation: ${event.resource.location}` : ''}`}
+            toolbar={true}
+          />
+        </div>
+        
+        <AgendaView 
+          events={events} 
+          calendars={calendars}
+          loading={loading}
+          onDateRangeChange={() => {}} // We'll handle this differently since we don't need to refetch
+        />
+        
+        <EventDetailsModal 
+          visible={modalVisible}
+          event={selectedEvent}
+          onClose={handleCloseModal}
         />
       </div>
     );
