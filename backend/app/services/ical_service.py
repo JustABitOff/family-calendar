@@ -5,10 +5,25 @@ from typing import List, Dict, Any, Optional
 import logging
 from dateutil import rrule
 from dateutil.tz import tzutc
+import pytz
 
 logger = logging.getLogger(__name__)
 
 class ICalService:
+    @staticmethod
+    def normalize_datetime(dt) -> datetime:
+        """Normalize datetime to ensure it's timezone-aware"""
+        if isinstance(dt, datetime):
+            if dt.tzinfo is None:
+                # If naive datetime, assume UTC
+                return pytz.UTC.localize(dt)
+            else:
+                # If already timezone-aware, convert to UTC
+                return dt.astimezone(pytz.UTC)
+        else:
+            # If it's a date, convert to datetime at midnight UTC
+            return pytz.UTC.localize(datetime.combine(dt, datetime.min.time()))
+    
     @staticmethod
     async def fetch_ical_data(url: str) -> Optional[str]:
         """Fetch iCal data from URL"""
@@ -42,15 +57,16 @@ class ICalService:
                     # Handle start and end times
                     dtstart = component.get('dtstart')
                     if dtstart:
-                        event["start_time"] = dtstart.dt
                         # Check if it's a date (all-day event) or datetime
                         event["all_day"] = not isinstance(dtstart.dt, datetime)
+                        # Normalize the datetime to ensure timezone consistency
+                        event["start_time"] = ICalService.normalize_datetime(dtstart.dt)
                     else:
                         continue  # Skip events without start time
                     
                     dtend = component.get('dtend')
                     if dtend:
-                        event["end_time"] = dtend.dt
+                        event["end_time"] = ICalService.normalize_datetime(dtend.dt)
                     else:
                         # If no end time, use start time + 1 hour or start date + 1 day
                         if event["all_day"]:
@@ -58,37 +74,40 @@ class ICalService:
                         else:
                             event["end_time"] = event["start_time"] + timedelta(hours=1)
                     
-                    # Convert date to datetime for database consistency if all-day event
-                    if event["all_day"]:
-                        if not isinstance(event["start_time"], datetime):
-                            event["start_time"] = datetime.combine(event["start_time"], datetime.min.time())
-                        if not isinstance(event["end_time"], datetime):
-                            event["end_time"] = datetime.combine(event["end_time"], datetime.min.time())
-                    
                     # Handle recurring events (basic implementation)
                     rrule_val = component.get('rrule')
                     if rrule_val:
-                        # For simplicity, we'll expand recurring events for the next 3 months
-                        now = datetime.now(tzutc())
-                        until = now + timedelta(days=90)
-                        
-                        # Create a rule
-                        rule = rrule.rrulestr(
-                            rrule_val.to_ical().decode('utf-8'),
-                            dtstart=event["start_time"]
-                        )
-                        
-                        # Get all occurrences
-                        occurrences = rule.between(now, until)
-                        
-                        # Create an event for each occurrence
-                        for occurrence in occurrences:
-                            recurrence_event = event.copy()
-                            duration = event["end_time"] - event["start_time"]
-                            recurrence_event["start_time"] = occurrence
-                            recurrence_event["end_time"] = occurrence + duration
-                            recurrence_event["uid"] = f"{event['uid']}_{occurrence.isoformat()}"
-                            events.append(recurrence_event)
+                        try:
+                            # For simplicity, we'll expand recurring events for the next 3 months
+                            now = datetime.now(pytz.UTC)
+                            until = now + timedelta(days=90)
+                            
+                            # Get the rrule string and modify UNTIL values to be UTC if needed
+                            rrule_str = rrule_val.to_ical().decode('utf-8')
+                            
+                            # Create a rule
+                            rule = rrule.rrulestr(
+                                rrule_str,
+                                dtstart=event["start_time"]
+                            )
+                            
+                            # Get all occurrences
+                            occurrences = rule.between(now, until)
+                            
+                            # Create an event for each occurrence
+                            for occurrence in occurrences:
+                                recurrence_event = event.copy()
+                                duration = event["end_time"] - event["start_time"]
+                                # Ensure occurrence is timezone-aware
+                                normalized_occurrence = ICalService.normalize_datetime(occurrence)
+                                recurrence_event["start_time"] = normalized_occurrence
+                                recurrence_event["end_time"] = normalized_occurrence + duration
+                                recurrence_event["uid"] = f"{event['uid']}_{normalized_occurrence.isoformat()}"
+                                events.append(recurrence_event)
+                        except Exception as rrule_error:
+                            # If there's an issue with recurring events, just add the base event
+                            logger.warning(f"Error processing recurring event {event.get('uid', 'unknown')}: {str(rrule_error)}")
+                            events.append(event)
                     else:
                         events.append(event)
             
