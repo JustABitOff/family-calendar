@@ -28,6 +28,23 @@ class CalendarCreate(CalendarBase):
             raise ValueError('Color must be a valid hex color code (e.g., #3174ad)')
         return v
 
+# Schema for updating a calendar
+class CalendarUpdate(BaseModel):
+    name: Optional[str] = None
+    color: Optional[str] = None
+    
+    @validator('color')
+    def color_must_be_hex(cls, v):
+        if v is None:
+            return v
+        if not v.startswith('#') or len(v) != 7:
+            raise ValueError('Color must be a valid hex color code (e.g., #3174ad)')
+        try:
+            int(v[1:], 16)
+        except ValueError:
+            raise ValueError('Color must be a valid hex color code (e.g., #3174ad)')
+        return v
+
 # Schema for calendar response
 class CalendarResponse(CalendarBase):
     id: int

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Layout, ConfigProvider, theme } from 'antd';
 import 'antd/dist/reset.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import moment from 'moment';
+import 'moment-timezone';
 
 import AppHeader from './components/Layout/AppHeader';
 import AppSidebar from './components/Layout/AppSidebar';
@@ -46,11 +48,9 @@ function App() {
     setLoading(true);
     try {
       // Calculate date range for a full year (6 months back, 6 months forward)
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
-      
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + 6);
+      // Use moment.js with browser's local timezone
+      const startDate = moment().subtract(6, 'months').toDate();
+      const endDate = moment().add(6, 'months').toDate();
       
       // Fetch events with the expanded date range
       const data = await fetchEventsByDateRange(startDate, endDate);

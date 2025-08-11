@@ -1,30 +1,49 @@
 import React, { useState, useCallback } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
+import 'moment-timezone';
 import { Spin, Empty } from 'antd';
+import EventDetailsModal from './EventDetailsModal';
 
 // Setup the localizer for react-big-calendar
+// This will use the browser's local timezone automatically
 const localizer = momentLocalizer(moment);
+
+// Custom formats for the calendar
+const formats = {
+  // Show only the title in week and day views instead of the time
+  eventTimeRangeFormat: () => '',
+  eventTimeRangeStartFormat: () => '',
+  eventTimeRangeEndFormat: () => ''
+};
 
 const CalendarView = ({ events, calendars, loading }) => {
   const [view, setView] = useState('month');
   const [date, setDate] = useState(new Date());
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Format events for react-big-calendar
   const formattedEvents = events.map(event => {
     // Find the calendar for this event
     const calendar = calendars.find(cal => cal.id === event.calendar_id);
     
+    // Convert UTC dates to local timezone
+    const startLocal = moment.utc(event.start_time).local().toDate();
+    const endLocal = moment.utc(event.end_time).local().toDate();
+    
     return {
       id: event.id,
       title: event.title,
-      start: new Date(event.start_time),
-      end: new Date(event.end_time),
+      start: startLocal,
+      end: endLocal,
       allDay: event.all_day,
       resource: {
         calendarId: event.calendar_id,
+        calendarName: calendar ? calendar.name : 'Calendar',
         description: event.description,
         location: event.location,
+        recurrenceRule: event.recurrence_rule,
         color: calendar ? calendar.color : '#1677ff', // Default blue if calendar not found
       }
     };
@@ -56,6 +75,17 @@ const CalendarView = ({ events, calendars, loading }) => {
   // Handle date change
   const handleNavigate = (newDate) => {
     setDate(newDate);
+  };
+
+  // Handle event selection
+  const handleSelectEvent = (event) => {
+    setSelectedEvent(event);
+    setModalVisible(true);
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setModalVisible(false);
   };
 
   if (loading) {
@@ -93,8 +123,16 @@ const CalendarView = ({ events, calendars, loading }) => {
         onView={handleViewChange}
         date={date}
         onNavigate={handleNavigate}
+        onSelectEvent={handleSelectEvent}
+        formats={formats}
         popup
         tooltipAccessor={(event) => `${event.title}${event.resource.location ? `\nLocation: ${event.resource.location}` : ''}`}
+      />
+      
+      <EventDetailsModal 
+        visible={modalVisible}
+        event={selectedEvent}
+        onClose={handleCloseModal}
       />
     </div>
   );

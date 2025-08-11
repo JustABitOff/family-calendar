@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.core.database import get_db
 from app.models.calendar import Calendar
-from app.schemas.calendar import CalendarCreate, CalendarResponse
+from app.schemas.calendar import CalendarCreate, CalendarResponse, CalendarUpdate
 from app.services.refresh_service import RefreshService
 
 router = APIRouter()
@@ -104,3 +104,25 @@ async def refresh_all_calendars(db: Session = Depends(get_db)):
     """
     results = await RefreshService.refresh_all_calendars(db)
     return results
+
+@router.patch("/{calendar_id}", response_model=CalendarResponse)
+def update_calendar(calendar_id: int, calendar_update: CalendarUpdate, db: Session = Depends(get_db)):
+    """
+    Update a calendar's properties.
+    """
+    db_calendar = db.query(Calendar).filter(Calendar.id == calendar_id).first()
+    if not db_calendar:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calendar not found"
+        )
+    
+    # Update calendar properties
+    update_data = calendar_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_calendar, key, value)
+    
+    db.commit()
+    db.refresh(db_calendar)
+    
+    return db_calendar
