@@ -20,7 +20,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8042:8042"
     depends_on:
       db:
         condition: service_healthy
@@ -33,9 +33,9 @@ services:
     volumes:
       - ./backend:/app
     command: >
-      bash -c "cd /app && 
-              python -m alembic upgrade head && 
-              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      bash -c "cd /app &&
+              python -m alembic upgrade head &&
+              uvicorn app.main:app --host 0.0.0.0 --port 8042 --reload"
 
   frontend:
     build: ./frontend

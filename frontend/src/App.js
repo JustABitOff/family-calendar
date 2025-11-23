@@ -83,6 +83,13 @@ function App() {
     setCalendars(calendars.filter(cal => cal.id !== calendarId));
   };
 
+  const handleEventCreated = (newEvent) => {
+    // Add the new event to the events list and refresh
+    setEvents([...events, newEvent]);
+    // Also refresh to ensure we have the latest data
+    loadEvents();
+  };
+
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -143,6 +150,7 @@ function App() {
                   events={events} 
                   calendars={calendars}
                   loading={loading}
+                  onEventCreated={handleEventCreated}
                 />
               ) : (
                 <AgendaView 

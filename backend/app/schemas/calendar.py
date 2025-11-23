@@ -5,11 +5,17 @@ from datetime import datetime
 # Calendar base schema
 class CalendarBase(BaseModel):
     name: str
-    url: str
+    url: Optional[str] = None
+    is_local: Optional[bool] = False
     
     @validator('url')
-    def url_must_be_valid(cls, v):
-        # Simple validation - could be enhanced
+    def url_must_be_valid(cls, v, values):
+        # Skip validation for local calendars
+        if values.get('is_local', False):
+            return v
+        # For non-local calendars, URL is required and must be valid
+        if v is None:
+            raise ValueError('URL is required for non-local calendars')
         if not v.startswith(('http://', 'https://')):
             raise ValueError('URL must start with http:// or https://')
         return v
@@ -46,8 +52,11 @@ class CalendarUpdate(BaseModel):
         return v
 
 # Schema for calendar response
-class CalendarResponse(CalendarBase):
+class CalendarResponse(BaseModel):
     id: int
+    name: str
+    url: Optional[str] = None
+    is_local: Optional[bool] = False
     color: str
     created_at: datetime
     updated_at: datetime

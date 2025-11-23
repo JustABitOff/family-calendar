@@ -13,9 +13,35 @@ router = APIRouter()
 @router.post("/", response_model=CalendarResponse, status_code=status.HTTP_201_CREATED)
 async def create_calendar(calendar: CalendarCreate, db: Session = Depends(get_db)):
     """
-    Create a new calendar from an iCal URL.
+    Create a new calendar from an iCal URL or create a local calendar.
     """
-    # Check if calendar with this URL already exists
+    # For local calendars, skip URL validation and refresh
+    if calendar.is_local:
+        # Check if a local calendar with this name already exists
+        existing_local = db.query(Calendar).filter(
+            Calendar.name == calendar.name,
+            Calendar.is_local == True
+        ).first()
+        if existing_local:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Local calendar with this name already exists"
+            )
+        
+        # Create local calendar
+        db_calendar = Calendar(
+            name=calendar.name,
+            url=None,
+            color=calendar.color,
+            is_local=True
+        )
+        db.add(db_calendar)
+        db.commit()
+        db.refresh(db_calendar)
+        
+        return db_calendar
+    
+    # For non-local calendars, check URL uniqueness and refresh
     existing_calendar = db.query(Calendar).filter(Calendar.url == calendar.url).first()
     if existing_calendar:
         raise HTTPException(
@@ -27,7 +53,8 @@ async def create_calendar(calendar: CalendarCreate, db: Session = Depends(get_db
     db_calendar = Calendar(
         name=calendar.name,
         url=calendar.url,
-        color=calendar.color
+        color=calendar.color,
+        is_local=False
     )
     db.add(db_calendar)
     db.commit()
@@ -126,3 +153,27 @@ def update_calendar(calendar_id: int, calendar_update: CalendarUpdate, db: Sessi
     db.refresh(db_calendar)
     
     return db_calendar
+
+@router.get("/local/default", response_model=CalendarResponse)
+def get_or_create_local_calendar(db: Session = Depends(get_db)):
+    """
+    Get the default local calendar, creating it if it doesn't exist.
+    """
+    # Look for existing local calendar
+    local_calendar = db.query(Calendar).filter(Calendar.is_local == True).first()
+    
+    if local_calendar:
+        return local_calendar
+    
+    # Create default local calendar if none exists
+    local_calendar = Calendar(
+        name="Local Events",
+        url=None,
+        color="#52c41a",  # Green color to distinguish from imported calendars
+        is_local=True
+    )
+    db.add(local_calendar)
+    db.commit()
+    db.refresh(local_calendar)
+    
+    return local_calendar

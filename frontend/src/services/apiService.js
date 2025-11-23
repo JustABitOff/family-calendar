@@ -6,7 +6,7 @@ import 'moment-timezone';
 const getBaseUrl = () => {
   // Always use localhost when running in a browser
   // This is because the browser can't resolve Docker container names
-  return 'http://localhost:8000/api';
+  return 'http://localhost:8042/api';
 };
 
 // Create axios instance with base URL
@@ -120,6 +120,48 @@ export const fetchEventsByDateRange = async (startDate, endDate) => {
   }
 };
 
+// Event creation, updating, and deletion
+export const createEvent = async (eventData) => {
+  try {
+    const response = await api.post('/events', eventData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating event:', error);
+    throw error;
+  }
+};
+
+export const updateEvent = async (eventId, eventData) => {
+  try {
+    const response = await api.put(`/events/${eventId}`, eventData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+export const deleteEvent = async (eventId) => {
+  try {
+    await api.delete(`/events/${eventId}`);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+// Local calendar management
+export const getOrCreateLocalCalendar = async () => {
+  try {
+    const response = await api.get('/calendars/local/default');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting/creating local calendar:', error);
+    throw error;
+  }
+};
+
 // Health check
 export const checkApiHealth = async () => {
   try {
@@ -132,3 +174,4 @@ export const checkApiHealth = async () => {
     return false;
   }
 };
+

@@ -4,6 +4,7 @@ import moment from 'moment';
 import 'moment-timezone';
 import { Spin, Empty } from 'antd';
 import EventDetailsModal from './EventDetailsModal';
+import AddEventModal from './AddEventModal';
 
 // Setup the localizer for react-big-calendar
 // This will use the browser's local timezone automatically
@@ -17,11 +18,13 @@ const formats = {
   eventTimeRangeEndFormat: () => ''
 };
 
-const CalendarView = ({ events, calendars, loading }) => {
+const CalendarView = ({ events, calendars, loading, onEventCreated }) => {
   const [view, setView] = useState('month');
   const [date, setDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [addEventModalVisible, setAddEventModalVisible] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   // Format events for react-big-calendar
   const formattedEvents = events.map(event => {
@@ -88,6 +91,28 @@ const CalendarView = ({ events, calendars, loading }) => {
     setModalVisible(false);
   };
 
+  // Handle slot selection (clicking on empty calendar slots)
+  const handleSelectSlot = (slotInfo) => {
+    setSelectedSlot(slotInfo);
+    setAddEventModalVisible(true);
+  };
+
+  // Handle add event modal close
+  const handleCloseAddEventModal = () => {
+    setAddEventModalVisible(false);
+    setSelectedSlot(null);
+  };
+
+  // Handle event creation success
+  const handleEventCreated = (newEvent) => {
+    // Call the parent's event creation handler
+    if (onEventCreated) {
+      onEventCreated(newEvent);
+    }
+    // Close the modal
+    handleCloseAddEventModal();
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
@@ -124,6 +149,8 @@ const CalendarView = ({ events, calendars, loading }) => {
         date={date}
         onNavigate={handleNavigate}
         onSelectEvent={handleSelectEvent}
+        onSelectSlot={handleSelectSlot}
+        selectable
         formats={formats}
         popup
         tooltipAccessor={(event) => `${event.title}${event.resource.location ? `\nLocation: ${event.resource.location}` : ''}`}
@@ -134,6 +161,17 @@ const CalendarView = ({ events, calendars, loading }) => {
         visible={modalVisible}
         event={selectedEvent}
         onClose={handleCloseModal}
+      />
+      
+      <AddEventModal
+        visible={addEventModalVisible}
+        onClose={handleCloseAddEventModal}
+        onEventCreated={handleEventCreated}
+        initialDate={selectedSlot?.start}
+        initialTime={selectedSlot?.start ? {
+          hour: moment(selectedSlot.start).hour(),
+          minute: moment(selectedSlot.start).minute()
+        } : null}
       />
     </div>
   );
