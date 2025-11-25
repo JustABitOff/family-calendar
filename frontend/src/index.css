@@ -48,3 +48,170 @@ code {
 .add-calendar-form {
   margin-bottom: 24px;
 }
+
+/* Agenda view improvements */
+.rbc-agenda-view {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr td {
+  padding: 12px 16px;
+  vertical-align: top;
+  border-right: 1px solid #f0f0f0;
+}
+
+.rbc-agenda-view .rbc-agenda-table tbody tr td:last-child {
+  border-right: none;
+}
+
+.rbc-agenda-view .rbc-agenda-table thead tr th {
+  background-color: #fafafa;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #e8e8e8;
+  border-right: 1px solid #e8e8e8;
+  text-align: left;
+}
+
+.rbc-agenda-view .rbc-agenda-table thead tr th:last-child {
+  border-right: none;
+}
+
+/* Add hover effect for better UX */
+.rbc-agenda-view .rbc-agenda-table tbody tr:hover {
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+/* Improve event title styling in agenda */
+.rbc-agenda-view .rbc-agenda-table tbody tr td .rbc-event-content {
+  font-weight: 500;
+}
+
+/* Add some spacing between date groups */
+.rbc-agenda-view .rbc-agenda-date-cell {
+  font-weight: 600;
+  color: #595959;
+  min-width: 120px;
+}
+
+.rbc-agenda-view .rbc-agenda-time-cell {
+  color: #8c8c8c;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.rbc-agenda-view .rbc-agenda-event-cell {
+  color: #262626;
+}
+
+/* Fix DatePicker styling issues - More comprehensive approach */
+.ant-picker-dropdown {
+  z-index: 1050 !important;
+}
+
+/* Reset all date picker cell styles */
+.ant-picker-dropdown .ant-picker-cell {
+  position: relative !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-inner {
+  position: relative !important;
+  display: inline-block !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  line-height: 22px !important;
+  text-align: center !important;
+  border-radius: 2px !important;
+  border: 1px solid transparent !important;
+  transition: background 0.3s, border 0.3s !important;
+}
+
+/* Default state - unselected dates */
+.ant-picker-dropdown .ant-picker-cell:not(.ant-picker-cell-selected):not(.ant-picker-cell-today):not(.ant-picker-cell-in-view) .ant-picker-cell-inner {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+  border-color: transparent !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view:not(.ant-picker-cell-selected):not(.ant-picker-cell-today) .ant-picker-cell-inner {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border-color: transparent !important;
+}
+
+/* Selected date */
+.ant-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: #1890ff !important;
+  color: #fff !important;
+  border-color: #1890ff !important;
+}
+
+/* Today's date */
+.ant-picker-dropdown .ant-picker-cell-today .ant-picker-cell-inner {
+  border-color: #1890ff !important;
+  background: transparent !important;
+  color: #1890ff !important;
+}
+
+/* Today's date when selected */
+.ant-picker-dropdown .ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: #1890ff !important;
+  color: #fff !important;
+  border-color: #1890ff !important;
+}
+
+/* Hover state */
+.ant-picker-dropdown .ant-picker-cell:hover:not(.ant-picker-cell-selected) .ant-picker-cell-inner {
+  background: #f5f5f5 !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border-color: transparent !important;
+}
+
+/* Disabled dates */
+.ant-picker-dropdown .ant-picker-cell-disabled .ant-picker-cell-inner {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+  border-color: transparent !important;
+  cursor: not-allowed !important;
+}
+
+/* Range selection states (if applicable) */
+.ant-picker-dropdown .ant-picker-cell-range-start .ant-picker-cell-inner,
+.ant-picker-dropdown .ant-picker-cell-range-end .ant-picker-cell-inner {
+  background: #1890ff !important;
+  color: #fff !important;
+  border-color: #1890ff !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-range .ant-picker-cell-inner {
+  background: #e6f7ff !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  border-color: transparent !important;
+}
+
+/* Force override any conflicting styles */
+.ant-picker-dropdown .ant-picker-cell-inner[style] {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner[style] {
+  background: #1890ff !important;
+  color: #fff !important;
+}

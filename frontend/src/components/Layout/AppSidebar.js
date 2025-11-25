@@ -53,7 +53,8 @@ const AppSidebar = ({
             
             <CalendarList 
               calendars={calendars} 
-              onCalendarRemoved={onCalendarRemoved} 
+              onCalendarRemoved={onCalendarRemoved}
+              onCalendarAdded={onCalendarAdded}
             />
           </>
         )}

@@ -1,17 +1,12 @@
 import axios from 'axios';
+import moment from 'moment';
+import 'moment-timezone';
 
 // Determine the base URL based on environment
 const getBaseUrl = () => {
-  // In development with Docker, use the backend service name
-  if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_IN_DOCKER === 'true') {
-    return 'http://backend:8000/api';
-  }
-  // In development without Docker, use localhost
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:8000/api';
-  }
-  // In production, use relative URL (assuming API is served from same domain)
-  return '/api';
+  // Always use localhost when running in a browser
+  // This is because the browser can't resolve Docker container names
+  return 'http://localhost:8042/api';
 };
 
 // Create axios instance with base URL
@@ -49,6 +44,16 @@ export const deleteCalendar = async (calendarId) => {
     return true;
   } catch (error) {
     console.error(`Error deleting calendar ${calendarId}:`, error);
+    throw error;
+  }
+};
+
+export const updateCalendar = async (calendarId, updateData) => {
+  try {
+    const response = await api.patch(`/calendars/${calendarId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating calendar ${calendarId}:`, error);
     throw error;
   }
 };
@@ -98,15 +103,61 @@ export const fetchEventsByCalendar = async (calendarId) => {
 
 export const fetchEventsByDateRange = async (startDate, endDate) => {
   try {
+    // Convert dates to ISO strings with the browser's local timezone information
+    const startIso = moment(startDate).format();
+    const endIso = moment(endDate).format();
+    
     const response = await api.get('/events', { 
       params: { 
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString()
+        start_date: startIso,
+        end_date: endIso
       } 
     });
     return response.data;
   } catch (error) {
     console.error('Error fetching events by date range:', error);
+    throw error;
+  }
+};
+
+// Event creation, updating, and deletion
+export const createEvent = async (eventData) => {
+  try {
+    const response = await api.post('/events', eventData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating event:', error);
+    throw error;
+  }
+};
+
+export const updateEvent = async (eventId, eventData) => {
+  try {
+    const response = await api.put(`/events/${eventId}`, eventData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+export const deleteEvent = async (eventId) => {
+  try {
+    await api.delete(`/events/${eventId}`);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting event ${eventId}:`, error);
+    throw error;
+  }
+};
+
+// Local calendar management
+export const getOrCreateLocalCalendar = async () => {
+  try {
+    const response = await api.get('/calendars/local/default');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting/creating local calendar:', error);
     throw error;
   }
 };
@@ -123,3 +174,4 @@ export const checkApiHealth = async () => {
     return false;
   }
 };
+

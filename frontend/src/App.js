@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, ConfigProvider, theme } from 'antd';
+import { Layout, ConfigProvider, theme, Button, Space } from 'antd';
+import { CalendarOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import moment from 'moment';
+import 'moment-timezone';
 
 import AppHeader from './components/Layout/AppHeader';
 import AppSidebar from './components/Layout/AppSidebar';
 import CalendarView from './components/Calendar/CalendarView';
+import AgendaView from './components/Calendar/AgendaView';
 import CalendarLegend from './components/Calendar/CalendarLegend';
 import { fetchCalendars, fetchEvents, fetchEventsByDateRange } from './services/apiService';
 
@@ -17,6 +21,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentView, setCurrentView] = useState('calendar'); // 'calendar' or 'agenda'
 
   // Load calendars on mount
   useEffect(() => {
@@ -46,11 +51,9 @@ function App() {
     setLoading(true);
     try {
       // Calculate date range for a full year (6 months back, 6 months forward)
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
-      
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + 6);
+      // Use moment.js with browser's local timezone
+      const startDate = moment().subtract(6, 'months').toDate();
+      const endDate = moment().add(6, 'months').toDate();
       
       // Fetch events with the expanded date range
       const data = await fetchEventsByDateRange(startDate, endDate);
@@ -80,9 +83,17 @@ function App() {
     setCalendars(calendars.filter(cal => cal.id !== calendarId));
   };
 
+  const handleEventCreated = (newEvent) => {
+    // Add the new event to the events list and refresh
+    setEvents([...events, newEvent]);
+    // Also refresh to ensure we have the latest data
+    loadEvents();
+  };
+
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
 
   return (
     <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
@@ -110,12 +121,45 @@ function App() {
                 borderRadius: 4,
               }}
             >
-              <CalendarLegend calendars={calendars} />
-              <CalendarView 
-                events={events} 
-                calendars={calendars}
-                loading={loading}
-              />
+              {/* View Navigation Controls */}
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <Button
+                    type={currentView === 'calendar' ? 'primary' : 'default'}
+                    icon={<CalendarOutlined />}
+                    onClick={() => setCurrentView('calendar')}
+                  >
+                    Calendar
+                  </Button>
+                  <Button
+                    type={currentView === 'agenda' ? 'primary' : 'default'}
+                    icon={<UnorderedListOutlined />}
+                    onClick={() => setCurrentView('agenda')}
+                  >
+                    Agenda
+                  </Button>
+                </Space>
+              </div>
+
+              {/* Calendar Legend - only show for calendar view */}
+              {currentView === 'calendar' && <CalendarLegend calendars={calendars} />}
+              
+              {/* Conditional View Rendering */}
+              {currentView === 'calendar' ? (
+                <CalendarView 
+                  events={events} 
+                  calendars={calendars}
+                  loading={loading}
+                  onEventCreated={handleEventCreated}
+                />
+              ) : (
+                <AgendaView 
+                  events={events} 
+                  calendars={calendars}
+                  loading={loading}
+                  onDateRangeChange={() => {}} // Independent operation - no need to sync with calendar
+                />
+              )}
             </Content>
           </Layout>
         </Layout>

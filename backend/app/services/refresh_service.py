@@ -87,20 +87,32 @@ class RefreshService:
                 # Fallback to the delete-all-and-insert approach
                 logger.info(f"Trying fallback method for calendar {calendar_id}")
                 
-                # Delete all existing events
+                # Delete all existing events and commit the deletion
                 db.query(Event).filter(Event.calendar_id == calendar_id).delete()
+                db.commit()
+                
+                # Track processed UIDs to avoid duplicates in the fallback method too
+                processed_uids = set()
+                success_count = 0
                 
                 # Add each event individually to identify problematic events
-                success_count = 0
                 for event_data in new_events:
+                    uid = event_data.get('uid')
+                    
+                    # Skip if we've already processed this UID
+                    if uid in processed_uids:
+                        continue
+                    
+                    processed_uids.add(uid)
+                    
                     try:
                         event = Event(**event_data)
                         db.add(event)
-                        db.flush()  # Flush but don't commit yet
+                        db.commit()  # Commit each event individually
                         success_count += 1
                     except Exception as e:
-                        db.rollback()  # Rollback this specific event
-                        logger.error(f"Failed to add event: {str(e)}")
+                        db.rollback()  # Rollback only this specific event
+                        logger.error(f"Failed to add event {uid}: {str(e)}")
                         # Continue with next event
                 
                 if success_count > 0:
